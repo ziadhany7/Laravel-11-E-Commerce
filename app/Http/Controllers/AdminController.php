@@ -168,6 +168,7 @@ class AdminController extends Controller
             'slug' => 'required|unique:categories,slug',
             'image' => 'mimes:png,jpg,jpeg|max:2048'
         ]);
+        # Creation
         $category = new Category();
         $category->name = $request->name;
         $category->slug = $request->slug;
