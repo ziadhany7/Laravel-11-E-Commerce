@@ -249,6 +249,7 @@ class AdminController extends Controller
     }
     public function product_store(Request $request)
     {
+        # Validation
         $request->validate([
             'name' => 'required',
             'slug' => 'required|unique:products,slug',
@@ -264,8 +265,9 @@ class AdminController extends Controller
             'category_id' => 'required',
             'brand_id' => 'required'
         ]);
-        $product = new Product();
 
+        # Creation
+        $product = new Product();
         $product->name = $request->name;
         $product->slug = Str::slug($request->name);
         $product->short_description = $request->short_description;
