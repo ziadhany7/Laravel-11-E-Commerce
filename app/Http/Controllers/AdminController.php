@@ -290,7 +290,6 @@ class AdminController extends Controller
             $this->GenerateProductThumbailsImage($image, $imageName);
             $product->image = $imageName;
         }
-
         $gallery_arr = array();
         $gallery_images = "";
         $counter = 1;
@@ -340,7 +339,7 @@ class AdminController extends Controller
         # Validation
         $request->validate([
             'name' => 'required',
-            'slug' => 'required|unique:products,slug,'.$request->id,
+            'slug' => 'required|unique:products,slug,' . $request->id,
             'short_description' => 'required',
             'description' => 'required',
             'regular_price' => 'required',
@@ -354,7 +353,7 @@ class AdminController extends Controller
             'brand_id' => 'required',
         ]);
         # Creation
-        $product = Product ::find($request->id);
+        $product = Product::find($request->id);
         $product->name = $request->name;
         $product->slug = Str::slug($request->name);
         $product->short_description = $request->short_description;
@@ -376,7 +375,7 @@ class AdminController extends Controller
                 File::delete(public_path('uploads/products/thumbnails') . '/' . $product->image);
             }
             $image = $request->file('image');
-            $imageName = $current_timestamp.'.'.$image->extension();
+            $imageName = $current_timestamp . '.' . $image->extension();
             $this->GenerateProductThumbailsImage($image, $imageName);
             $product->image = $imageName;
         }
@@ -385,13 +384,12 @@ class AdminController extends Controller
         $gallery_images = "";
         $counter = 1;
         if ($request->hasFile('images')) {
-            foreach (explode(',', $product->images) as $ofile)
-            {
-                if (File::exists(public_path('uploads/products').'/'.$ofile)) {
-                    File::delete(public_path('uploads/products').'/'.$ofile);
+            foreach (explode(',', $product->images) as $ofile) {
+                if (File::exists(public_path('uploads/products') . '/' . $ofile)) {
+                    File::delete(public_path('uploads/products') . '/' . $ofile);
                 }
-                if (File::exists(public_path('uploads/products/thumbnails').'/'.$ofile)) {
-                    File::delete(public_path('uploads/products/thumbnails').'/'.$ofile);
+                if (File::exists(public_path('uploads/products/thumbnails') . '/' . $ofile)) {
+                    File::delete(public_path('uploads/products/thumbnails') . '/' . $ofile);
                 }
             }
             $allowedFileExtension = ['jpg', 'png', 'jpeg'];
@@ -411,5 +409,25 @@ class AdminController extends Controller
         }
         $product->save();
         return redirect()->route('admin.products')->with('status', 'product has been Updated successfully');
+    }
+    public function product_delete($id)
+    {
+        $product = Product::find($id);
+        if (File::exists(public_path('uploads/products') . '/' . $product->image)) {
+            File::delete(public_path('uploads/products') . '/' . $product->image);
+        }
+        if (File::exists(public_path('uploads/products/thumbnails') . '/' . $product->image)) {
+            File::delete(public_path('uploads/products/thumbnails') . '/' . $product->image);
+        }
+        foreach (explode(',', $product->images) as $ofile) {
+            if (File::exists(public_path('uploads/products') . '/' . $ofile)) {
+                File::delete(public_path('uploads/products') . '/' . $ofile);
+            }
+            if (File::exists(public_path('uploads/products/thumbnails') . '/' . $ofile)) {
+                File::delete(public_path('uploads/products/thumbnails') . '/' . $ofile);
+            }
+        }
+        $product->delete();
+        return redirect()->route("admin.products")->with('status', 'Product has been deleted successfully');
     }
 }
