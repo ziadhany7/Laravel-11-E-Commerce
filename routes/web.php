@@ -49,4 +49,5 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::delete('/admin/products/{id}/delete',[AdminController::class,'product_delete'])->name('admin.product.delete');
 
     // Shop Routes
+    Route::get('/shop/{product_slug}',[ShopController::class,'product_details'])->name('shop.product.details');
 });

@@ -11,4 +11,9 @@ class ShopController extends Controller
         $products = Product::orderBy('created_at','DESC')->paginate(12);
         return view('shop.shop-home',compact('products'));
     }
+    public function product_details($product_slug){
+        $product = Product::where('slug',$product_slug)->first();
+        $related_products= Product::where('slug','<>','$product_slug')->get()->take(8);
+        return View('shop.details',compact('product','related_products'));
+    }
 }

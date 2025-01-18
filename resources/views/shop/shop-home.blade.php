@@ -412,7 +412,7 @@
                                         data-settings='{"resizeObserver": true}'>
                                         <div class="swiper-wrapper">
                                             <div class="swiper-slide">
-                                                <a href="details.html"><img loading="lazy"
+                                                <a href="{{route('shop.product.details',['product_slug'=>$product->slug])}}"><img loading="lazy"
                                                         src="{{ asset('uploads/products') }}/{{ $product->image }}"
                                                         width="330" height="400" alt="{{ $product->name }}"
                                                         class="pc__img"></a>
@@ -421,7 +421,7 @@
                                                 {{-- The explode function splits a string into an array based on a specified delimiter.
                                                     the delimiter is a comma (','), so if $product->images contains image1.jpg,image2.jpg,image3.jpg, it will become: --}}
                                                 @foreach (explode(',', $product->images) as $gallery_img)
-                                                    <a href="details.html"><img loading="lazy"
+                                                    <a href="{{route('shop.product.details',['product_slug'=>$product->slug])}}"><img loading="lazy"
                                                             src="{{ asset('uploads/products') }}/{{ $gallery_img }}"
                                                             width="330" height="400" alt="{{ $product->name }}"
                                                             class="pc__img"></a>
@@ -444,7 +444,7 @@
 
                                 <div class="pc__info position-relative">
                                     <p class="pc__category">{{ $product->category->name }}</p>
-                                    <h6 class="pc__title"><a href="details.html">{{ $product->name }}</a></h6>
+                                    <h6 class="pc__title"><a href="{{route('shop.product.details',['product_slug'=>$product->slug])}}">{{ $product->name }}</a></h6>
                                     <div class="product-card__price d-flex">
                                         <span class="money price">
                                             @if ($product->sale_price)
