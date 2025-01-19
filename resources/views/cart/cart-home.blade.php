@@ -47,13 +47,14 @@
                                     <tr>
                                         <td>
                                             <div class="shopping-cart__product-item">
-                                                <img loading="lazy" src="{{asset('uploads/products/thumbnails')}}/{{$item->model->image}}" width="120"
-                                                    height="120" alt="{{$item->name}}" />
+                                                <img loading="lazy"
+                                                    src="{{ asset('uploads/products/thumbnails') }}/{{ $item->model->image }}"
+                                                    width="120" height="120" alt="{{ $item->name }}" />
                                             </div>
                                         </td>
                                         <td>
                                             <div class="shopping-cart__product-item__detail">
-                                                <h4>{{$item->name}}</h4>
+                                                <h4>{{ $item->name }}</h4>
                                                 <ul class="shopping-cart__product-item__options">
                                                     <li>Color: Yellow</li>
                                                     <li>Size: L</li>
@@ -61,18 +62,28 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="shopping-cart__product-price">${{$item->price}}</span>
+                                            <span class="shopping-cart__product-price">${{ $item->price }}</span>
                                         </td>
                                         <td>
                                             <div class="qty-control position-relative">
-                                                <input type="number" name="quantity" value="{{$item->qty}}" min="1"
-                                                    class="qty-control__number text-center"/>
-                                                <div class="qty-control__reduce">-</div>
-                                                <div class="qty-control__increase">+</div>
+                                                <input type="number" name="quantity" value="{{$item->qty}}"
+                                                    min="1" class="qty-control__number text-center" />
+                                                <form method="POST" action="{{ route('cart.qty.decrease', ['rowId' => $item->rowId]) }}">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <div class="qty-control__reduce">-</div>
+                                                </form>
+
+                                                <form method="POST"
+                                                    action="{{ route('cart.qty.increase', ['rowId' => $item->rowId]) }}">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <div class="qty-control__increase">+</div>
+                                                </form>
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="shopping-cart__subtotal">${{$item->subTotal()}}</span>
+                                            <span class="shopping-cart__subtotal">${{ $item->subTotal() }}</span>
                                         </td>
                                         <td>
                                             <a href="#" class="remove-cart">
@@ -106,7 +117,7 @@
                                     <tbody>
                                         <tr>
                                             <th>Subtotal</th>
-                                            <td>${{Cart::instance('cart')->subtotal()}}</td>
+                                            <td>${{ Cart::instance('cart')->subtotal() }}</td>
                                         </tr>
                                         <tr>
                                             <th>Shipping</th>
@@ -114,11 +125,11 @@
                                         </tr>
                                         <tr>
                                             <th>VAT</th>
-                                            <td>${{Cart::instance('cart')->tax()}}</td>
+                                            <td>${{ Cart::instance('cart')->tax() }}</td>
                                         </tr>
                                         <tr>
                                             <th>Total</th>
-                                            <td>${{Cart::instance('cart')->total()}}</td>
+                                            <td>${{ Cart::instance('cart')->total() }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -134,7 +145,7 @@
                     <dev class="row">
                         <dev class="col-md-12 text-center pt-5 bp-5">
                             <p>NO Items founded in cart</p>
-                            <a href="{{route('shop.index')}}" class="btn btn-info">Shop Now</a>
+                            <a href="{{ route('shop.index') }}" class="btn btn-info">Shop Now</a>
                         </dev>
 
                     </dev>
@@ -144,3 +155,15 @@
     </main>
 
 @endsection
+@push('scripts')
+<script>
+    $(function(){
+        $(".qty-control__increase").on("click", function() {
+            $(this).closest('form').submit();
+        });
+        $(".qty-control__reduce").on("click", function() {
+            $(this).closest('form').submit();
+        });
+    })
+    </script>
+@endpush

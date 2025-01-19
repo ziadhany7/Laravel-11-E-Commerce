@@ -56,4 +56,6 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     //  Cart Routes
     Route::get('/cart',[CartController::class,'index'])->name('cart.index');
     Route::post('/cart/add',[CartController::class,'add_to_cart'])->name('cart.add');
+    Route::put('cart/increase-quantity/{rowId}',[CartController::class,'increase_cart_quantity'])->name('cart.qty.increase');
+    Route::put('cart/decrease-quantity/{rowId}',[CartController::class,'decrease_cart_quantity'])->name('cart.qty.decrease');
 });
