@@ -412,7 +412,9 @@
                                         data-settings='{"resizeObserver": true}'>
                                         <div class="swiper-wrapper">
                                             <div class="swiper-slide">
-                                                <a href="{{route('shop.product.details',['product_slug'=>$product->slug])}}"><img loading="lazy"
+                                                <a
+                                                    href="{{ route('shop.product.details', ['product_slug' => $product->slug]) }}"><img
+                                                        loading="lazy"
                                                         src="{{ asset('uploads/products') }}/{{ $product->image }}"
                                                         width="330" height="400" alt="{{ $product->name }}"
                                                         class="pc__img"></a>
@@ -421,7 +423,9 @@
                                                 {{-- The explode function splits a string into an array based on a specified delimiter.
                                                     the delimiter is a comma (','), so if $product->images contains image1.jpg,image2.jpg,image3.jpg, it will become: --}}
                                                 @foreach (explode(',', $product->images) as $gallery_img)
-                                                    <a href="{{route('shop.product.details',['product_slug'=>$product->slug])}}"><img loading="lazy"
+                                                    <a
+                                                        href="{{ route('shop.product.details', ['product_slug' => $product->slug]) }}"><img
+                                                            loading="lazy"
                                                             src="{{ asset('uploads/products') }}/{{ $gallery_img }}"
                                                             width="330" height="400" alt="{{ $product->name }}"
                                                             class="pc__img"></a>
@@ -437,14 +441,30 @@
                                                 <use href="#icon_next_sm" />
                                             </svg></span>
                                     </div>
-                                    <button
-                                        class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium js-add-cart js-open-aside"
-                                        data-aside="cartDrawer" title="Add To Cart">Add To Cart</button>
+                                    @if (Cart::instance('cart')->content()->where('id', $product->id)->count() > 0)
+                                        <a href="{{ route('cart.index') }}"
+                                            class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">Go
+                                            to Cart</a>
+                                    @else
+                                        <form name="addtocart-form" method="post" action="{{ route('cart.add') }}">
+                                            @csrf
+                                            <input type="hidden" name="id" value="{{ $product->id }}" />
+                                            <input type="hidden" name="quantity" value="1" />
+                                            <input type="hidden" name="name" value="{{ $product->name }}" />
+                                            <input type="hidden" name="price"
+                                                value="{{ $product->sale_price == '' ? $product->regular_price : $product->sale_price }}" />
+                                            <button type="submit"
+                                                class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium"
+                                                data-aside="cartDrawer" title="Add To Cart">Add To Cart</button>
+                                        </form>
+                                    @endif
                                 </div>
 
                                 <div class="pc__info position-relative">
                                     <p class="pc__category">{{ $product->category->name }}</p>
-                                    <h6 class="pc__title"><a href="{{route('shop.product.details',['product_slug'=>$product->slug])}}">{{ $product->name }}</a></h6>
+                                    <h6 class="pc__title"><a
+                                            href="{{ route('shop.product.details', ['product_slug' => $product->slug]) }}">{{ $product->name }}</a>
+                                    </h6>
                                     <div class="product-card__price d-flex">
                                         <span class="money price">
                                             @if ($product->sale_price)

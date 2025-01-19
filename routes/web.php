@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\UserController;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 Auth::routes();
 // index Routes
 Route::get('/', [HomeController::class, 'index'])->name('home.index');
-Route::get('/shop',[ShopController::class,'index'])->name('shop.index');
+
 
 // Auth Routes
 Route::middleware(['auth'])->group(function (){
@@ -48,6 +49,11 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::put('/admin/products/update',[AdminController::class,'product_update'])->name('admin.product.update');
     Route::delete('/admin/products/{id}/delete',[AdminController::class,'product_delete'])->name('admin.product.delete');
 
-    // Shop Routes
+    //  Shop Routes
+    Route::get('/shop',[ShopController::class,'index'])->name('shop.index');
     Route::get('/shop/{product_slug}',[ShopController::class,'product_details'])->name('shop.product.details');
+
+    //  Cart Routes
+    Route::get('/cart',[CartController::class,'index'])->name('cart.index');
+    Route::post('/cart/add',[CartController::class,'add_to_cart'])->name('cart.add');
 });

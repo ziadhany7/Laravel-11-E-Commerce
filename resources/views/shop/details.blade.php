@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@php use Surfsidemedia\Shoppingcart\Facades\Cart; @endphp
 @section('content')
     <main class="pt-90">
         <div class="mb-md-1 pb-md-3"></div>
@@ -9,7 +10,6 @@
                         <div class="product-single__image">
                             <div class="swiper-container">
                                 <div class="swiper-wrapper">
-
                                     <div class="swiper-slide product-single__image-item">
                                         <img loading="lazy" class="h-auto"
                                             src="{{ asset('uploads/products') }}/{{ $product->image }}" width="674"
@@ -119,19 +119,27 @@
                     <div class="product-single__short-desc">
                         <p>{{ $product->short_description }}</p>
                     </div>
-                    <form name="addtocart-form" method="post">
-                        <div class="product-single__addtocart">
-                            <div class="qty-control position-relative">
-                                <input type="number" name="quantity" value="1" min="1"
-                                    class="qty-control__number text-center">
-                                <div class="qty-control__reduce">-</div>
-                                <div class="qty-control__increase">+</div>
-                            </div><!-- .qty-control -->
-                            <button type="submit" class="btn btn-primary btn-addtocart js-open-aside"
-                                data-aside="cartDrawer">Add to
-                                Cart</button>
-                        </div>
-                    </form>
+                    @if (Cart::instance('cart')->content()->where('id', $product->id)->count() > 0)
+                        <a href="{{ route('cart.index') }}" class="btn btn-warning mb-3">Go to Cart</a>
+                    @else
+                        <form name="addtocart-form" method="post" action="{{ route('cart.add') }}">
+                            @csrf
+                            <div class="product-single__addtocart">
+                                <div class="qty-control position-relative">
+                                    <input type="number" name="quantity" value="1" min="1"
+                                        class="qty-control__number text-center">
+                                    <div class="qty-control__reduce">-</div>
+                                    <div class="qty-control__increase">+</div>
+                                </div><!-- .qty-control -->
+                                <input type="hidden" name="id" value="{{ $product->id }}" />
+                                <input type="hidden" name="name" value="{{ $product->name }}" />
+                                <input type="hidden" name="price"
+                                    value="{{ $product->sale_price == '' ? $product->regular_price : $product->sale_price }}" />
+                                <button type="submit" class="btn btn-primary btn-addtocart" data-aside="cartDrawer">Add
+                                    to Cart</button>
+                            </div>
+                        </form>
+                    @endif
                     <div class="product-single__addtolinks">
                         <a href="#" class="menu-link menu-link_us-s add-to-wishlist"><svg width="16"
                                 height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -423,30 +431,48 @@
                         @foreach ($related_products as $related_product)
                             <div class="swiper-slide product-card">
                                 <div class="pc__img-wrapper">
-                                    <a href="{{route('shop.product.details',['product_slug'=>$related_product->slug])}}">
+                                    <a
+                                        href="{{ route('shop.product.details', ['product_slug' => $related_product->slug]) }}">
                                         <img loading="lazy"
-                                            src="{{asset('uploads/products')}}/{{$related_product->image}}"
-                                            width="330" height="400" alt="{{$related_product->name}}"
+                                            src="{{ asset('uploads/products') }}/{{ $related_product->image }}"
+                                            width="330" height="400" alt="{{ $related_product->name }}"
                                             class="pc__img">
                                         @foreach (explode(',', $related_product->images) as $gallery_img)
                                             <img loading="lazy"
-                                                src="{{asset('uploads/products')}}/{{$gallery_img}}"
-                                                width="330" height="400" alt="{{$related_product->name}}"
+                                                src="{{ asset('uploads/products') }}/{{ $gallery_img }}" width="330"
+                                                height="400" alt="{{ $related_product->name }}"
                                                 class="pc__img pc__img-second">
                                         @endforeach
                                     </a>
-                                    <button
-                                        class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium js-add-cart js-open-aside"
-                                        data-aside="cartDrawer" title="Add To Cart">Add To Cart</button>
+                                    @if (Cart::instance('cart')->content()->where('id', $related_product->id)->count() > 0)
+                                        <a href="{{ route('cart.index') }}"
+                                            class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">Go
+                                            to Cart</a>
+                                    @else
+                                        <form name="addtocart-form" method="post" action="{{ route('cart.add') }}">
+                                            @csrf
+                                            <input type="hidden" name="id" value="{{ $related_product->id }}" />
+                                            <input type="hidden" name="quantity" value="1" />
+                                            <input type="hidden" name="name" value="{{ $related_product->name }}" />
+                                            <input type="hidden" name="price"
+                                                value="{{ $related_product->sale_price == '' ? $related_product->regular_price : $related_product->sale_price }}" />
+                                            <button type="submit"
+                                                class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium"
+                                                data-aside="cartDrawer" title="Add To Cart">Add To Cart</button>
+                                        </form>
+                                    @endif
                                 </div>
 
                                 <div class="pc__info position-relative">
-                                    <p class="pc__category">{{$related_product->category->name}}</p>
-                                    <h6 class="pc__title"><a href="{{route('shop.product.details',['product_slug'=>$product->slug])}}">{{$related_product->name}}</a></h6>
+                                    <p class="pc__category">{{ $related_product->category->name }}</p>
+                                    <h6 class="pc__title"><a
+                                            href="{{ route('shop.product.details', ['product_slug' => $product->slug]) }}">{{ $related_product->name }}</a>
+                                    </h6>
                                     <div class="product-card__price d-flex">
                                         <span class="money price">
                                             @if ($related_product->sale_price)
-                                                <s>{{ $related_product->regular_price }} </s> ${{ $related_product->sale_price }}
+                                                <s>{{ $related_product->regular_price }} </s>
+                                                ${{ $related_product->sale_price }}
                                             @else
                                                 ${{ $related_product->regular_price }}
                                             @endif
