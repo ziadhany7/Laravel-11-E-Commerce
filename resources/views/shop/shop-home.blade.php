@@ -51,7 +51,7 @@
                                             <span class="menu-link py-1">
                                                 <input type="checkbox" class="chk-category" name="categories"
                                                     value="{{ $category->id }}"
-                                                    @if (in_array($category->id, explode(',', $f_categories))) checked="checked" @endif >
+                                                    @if (in_array($category->id, explode(',', $f_categories))) checked="checked" @endif>
                                                 {{ $category->name }}
                                             </span>
                                             <span class="text-right float-end">{{ $category->products->count() }}</span>
@@ -201,16 +201,16 @@
                         <div id="accordion-filter-price" class="accordion-collapse collapse show border-0"
                             aria-labelledby="accordion-heading-price" data-bs-parent="#price-filters">
                             <input class="price-range-slider" type="text" name="price_range" value=""
-                                data-slider-min="10" data-slider-max="1000" data-slider-step="5"
-                                data-slider-value="[250,450]" data-currency="$" />
+                                data-slider-min="1" data-slider-max="500" data-slider-step="5"
+                                data-slider-value="[{{ $min_price }},{{ $max_price }}]" data-currency="$" />
                             <div class="price-range__info d-flex align-items-center mt-2">
                                 <div class="me-auto">
                                     <span class="text-secondary">Min Price: </span>
-                                    <span class="price-range__min">$250</span>
+                                    <span class="price-range__min">$1</span>
                                 </div>
                                 <div>
                                     <span class="text-secondary">Max Price: </span>
-                                    <span class="price-range__max">$450</span>
+                                    <span class="price-range__max">$500</span>
                                 </div>
                             </div>
                         </div>
@@ -498,6 +498,8 @@
         {{-- Stores the currently selected product brand filter. --}}
         <input type="hidden" name="brands" id="hdnBrands" />
         <input type="hidden" name="categories" id="hdnCategories" />
+        <input type="hidden" name="min" id="hdnMinPrice" value="{{ $min_price }}" />
+        <input type="hidden" name="max" id="hdnMaxPrice" value="{{ $max_price }}" />
     </form>
 @endsection
 
@@ -519,12 +521,9 @@
             $("input[name='brands']").on("change", function() {
                 var brands = "";
                 $("input[name='brands']:checked").each(function() {
-                    if (brands == "")
-                    {
+                    if (brands == "") {
                         brands += $(this).val();
-                    }
-                    else
-                    {
+                    } else {
                         brands += "," + $(this).val();
                     }
                 });
@@ -533,21 +532,29 @@
             });
         });
         $(function() {
-            $("input[name='categories']").on("change", function()
-            {
+            $("input[name='categories']").on("change", function() {
                 var categories = "";
-                $("input[name='categories']:checked").each(function()
-                {
+                $("input[name='categories']:checked").each(function() {
                     if (categories == "") {
                         categories += $(this).val();
-                    }
-                    else
-                    {
+                    } else {
                         categories += "," + $(this).val();
                     }
                 });
                 $("#hdnCategories").val(categories);
                 $("#frmfilter").submit();
+            });
+        });
+
+        $(function() {
+            $("input[name='price_range']").on("change", function() {
+                var min = $(this).val().split(',')[0];
+                var max = $(this).val().split(',')[1];
+                $("#hdnMinPrice").val(min);
+                $("#hdnMaxPrice").val(max);
+                setTimeout(() => {
+                    $("#frmfilter").submit();
+                }, 1000);
             });
         });
     </script>
