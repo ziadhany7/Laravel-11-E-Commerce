@@ -63,5 +63,6 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::delete('/cart/clear',[CartController::class,'empty_cart'])->name('cart.empty');
 
     // Wishlist Routes
+    Route::get('/wishlist',[WishlistController::class,'index'])->name('wishlist.index');
     Route::post('/wishlist/add',[WishlistController::class, 'add_to_wishlist'])->name('wishlist.add');
 });
