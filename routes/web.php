@@ -22,6 +22,7 @@ Route::middleware(['auth'])->group(function (){
     // User Routes:
     Route::get('/account-dashboard', [UserController::class, 'index'])->name('user.index');
 });
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Admin panal Routes
 Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
@@ -51,10 +52,16 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::delete('/admin/products/{id}/delete',[AdminController::class,'product_delete'])->name('admin.product.delete');
     //Coupons Route
     Route::get('/admin/coupons',[AdminController::class,'coupons'])->name('admin.coupons');
+    Route::get('/admin/coupons/add',[AdminController::class,'coupon_add'])->name('admin.coupon.add');
+    Route::post('/admin/coupons/store',[AdminController::class,'coupon_store'])->name('admin.coupon.store');
+    Route::get('/admin/coupons/{id}/edit',[AdminController::class,'coupon_edit'])->name('admin.coupon.edit');
+    Route::put('/admin/coupons/update',[AdminController::class,'coupon_update'])->name('admin.coupon.update');
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
     //  Shop Routes
     Route::get('/shop',[ShopController::class,'index'])->name('shop.index');
     Route::get('/shop/{product_slug}',[ShopController::class,'product_details'])->name('shop.product.details');
-
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
     //  Cart Routes
     Route::get('/cart',[CartController::class,'index'])->name('cart.index');
     Route::post('/cart/add',[CartController::class,'add_to_cart'])->name('cart.add');
@@ -62,11 +69,14 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::put('/cart/decrease-quantity/{rowId}',[CartController::class,'decrease_cart_quantity'])->name('cart.qty.decrease');
     Route::delete('/cart/remove/{rowId}',[CartController::class,'remove_item'])->name('cart.item.remove');
     Route::delete('/cart/clear',[CartController::class,'empty_cart'])->name('cart.empty');
-
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
     // Wishlist Routes
     Route::get('/wishlist',[WishlistController::class,'index'])->name('wishlist.index');
     Route::post('/wishlist/add',[WishlistController::class, 'add_to_wishlist'])->name('wishlist.add');
     Route::delete('/wishlist/item/remove/{rowId}',[WishlistController::class,'remove_item'])->name('wishlist.item.remove');
     Route::delete('/wishlist/clear',[WishlistController::class,'empty_wishlist'])->name('wishlist.items.clear');
     Route::post('/wishlist/move-to-cart/{rowId}',[WishlistController::class,'move_to_cart'])->name('wishlist.move.to.cart');
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 });
