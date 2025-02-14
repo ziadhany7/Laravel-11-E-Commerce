@@ -87,5 +87,13 @@ class CartController extends Controller
                 'total' => number_format(floatval($totalAfterDiscount), 2, '.', ''),
             ]);
         }
+
+    }
+    public function remove_coupon_code(){
+        Session::forget('coupon');
+        Session::forget('discounts');
+        return back()->with('success','Coupon has been removed!');
+
+
     }
 }

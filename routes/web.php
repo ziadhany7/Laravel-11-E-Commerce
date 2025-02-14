@@ -70,6 +70,7 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::delete('/cart/remove/{rowId}',[CartController::class,'remove_item'])->name('cart.item.remove');
     Route::delete('/cart/clear',[CartController::class,'empty_cart'])->name('cart.empty');
     Route::post('/cart/apply-coupon',[CartController::class,'apply_coupon_code'])->name('cart.coupon.apply');
+    Route::delete('/cart/remove-coupon',[CartController::class,'remove_coupon_code'])->name('cart.coupon.remove');
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
     // Wishlist Routes
     Route::get('/wishlist',[WishlistController::class,'index'])->name('wishlist.index');
