@@ -79,6 +79,10 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::delete('/wishlist/clear',[WishlistController::class,'empty_wishlist'])->name('wishlist.items.clear');
     Route::post('/wishlist/move-to-cart/{rowId}',[WishlistController::class,'move_to_cart'])->name('wishlist.move.to.cart');
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Checkout Route
+    Route::get('/checkout',[CartController::class,'checkout'])->name('cart.checkout');
 
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 });

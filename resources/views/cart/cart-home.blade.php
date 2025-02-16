@@ -161,7 +161,7 @@
                                                 <td>${{ Cart::instance('cart')->subtotal() }}</td>
                                             </tr>
                                             <tr>
-                                                <th>Discount{{ Session::get('coupon')['code'] }}</th>
+                                                <th>Discount {{ Session::get('coupon')['code'] }}</th>
                                                 <td>${{ Session::get('discounts')['discount'] }}</td>
                                             </tr>
                                             <tr>
@@ -207,7 +207,7 @@
                             </div>
                             <div class="mobile_fixed-btn_wrapper">
                                 <div class="button-wrapper container">
-                                    <a href="checkout.html" class="btn btn-primary btn-checkout">PROCEED TO CHECKOUT</a>
+                                    <a href="{{route('cart.checkout')}}" class="btn btn-primary btn-checkout">PROCEED TO CHECKOUT</a>
                                 </div>
                             </div>
                         </div>
