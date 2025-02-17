@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Coupon;
+use App\Models\Order;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
@@ -438,7 +439,7 @@ class AdminController extends Controller
     }
     public function coupon_add()
     {
-        return view('admin.coupons.coupon-add ');
+        return view('admin.coupons.coupon-add');
     }
     public function coupon_store(Request $request)
     {
@@ -485,6 +486,12 @@ class AdminController extends Controller
         $coupon->delete();
 
         return redirect()->route('admin.coupons')->with('status', 'Coupon has been Deleted successfully!');
+    }
+    public function orders()
+    {
+        $orders = Order::orderBy('created_at','DESC')->paginate(12);
+
+        return view('admin.orders.orders-home',compact('orders'));
     }
 
 }

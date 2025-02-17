@@ -50,13 +50,15 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::get('/admin/products/edit/{id}',[AdminController::class,'product_edit'])->name('admin.product.edit');
     Route::put('/admin/products/update',[AdminController::class,'product_update'])->name('admin.product.update');
     Route::delete('/admin/products/{id}/delete',[AdminController::class,'product_delete'])->name('admin.product.delete');
-    //Coupons Route
+    // Coupons Route
     Route::get('/admin/coupons',[AdminController::class,'coupons'])->name('admin.coupons');
     Route::get('/admin/coupons/add',[AdminController::class,'coupon_add'])->name('admin.coupon.add');
     Route::post('/admin/coupons/store',[AdminController::class,'coupon_store'])->name('admin.coupon.store');
     Route::get('/admin/coupons/{id}/edit',[AdminController::class,'coupon_edit'])->name('admin.coupon.edit');
     Route::put('/admin/coupons/update',[AdminController::class,'coupon_update'])->name('admin.coupon.update');
     Route::delete('/admin/coupons/{id}/delete',[AdminController::class,'coupon_delete'])->name('admin.coupon.delete');
+    // Orders Route
+    Route::get('/admin/orders',[AdminController::class,'orders'])->name('admin.orders');
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
     //  Shop Routes
     Route::get('/shop',[ShopController::class,'index'])->name('shop.index');
@@ -83,7 +85,6 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::get('/checkout',[CartController::class,'checkout'])->name('cart.checkout');
     Route::post('/place-an-order', [CartController :: class,'place_an_order'])->name('cart.place.an.order');
     Route::get('/order-confirmation',[CartController::class,'order_confirmation'])->name('cart.order.confirmation');
-
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 });
