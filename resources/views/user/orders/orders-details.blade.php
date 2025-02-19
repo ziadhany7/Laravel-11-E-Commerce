@@ -112,7 +112,7 @@
                     <div class="wg-box">
                         <div class="flex items-center justify-between gap10 flex-wrap">
                             <div class="row">
-                                <div class="col-6">|
+                                <div class="col-6">
                                     <h5>Ordered Details</h5>
                                 </div>
                                 <div class="col-6 text-right">
@@ -121,7 +121,7 @@
                             </div>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-bordered">
+                            <table class="table table-bordered table-striped table-transaction">
                                 <tr>
                                     <th>Order No</th>
                                     <td>{{ $order->id }}</td>
@@ -137,7 +137,7 @@
                                     <td>{{ $order->delivered_date }}</td>
                                     <th>Canceled Date</th>
                                     <td>{{ $order->canceled_date }}</td>
-                                    k/tr>
+                                </tr>
                                 <tr>
                                     <th>Order Status</th>
                                     <td colspan="5">
@@ -164,7 +164,7 @@
                             <table class="table table-striped table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
+                                        <th class="text-center">Name</th>
                                         <th class="text-center">Price</th>
                                         <th class="text-center">Quantity</th>
                                         <th class="text-center">SKU</th>
