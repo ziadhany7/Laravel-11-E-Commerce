@@ -209,7 +209,7 @@
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input form-check-input_fill" type="radio" name="mode" id="mode3" value="cod">
+                                    <input class="form-check-input form-check-input_fill" type="radio" name="mode" id="mode3" value="cod" checked>
                                     <label class="form-check-label" for="mode3">
                                         Cash on delivery
                                     </label>
