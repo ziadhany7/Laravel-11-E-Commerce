@@ -38,10 +38,14 @@ Route::get('/', [HomeController::class, 'index'])->name('home.index');
     Route::delete('/wishlist/clear',[WishlistController::class,'empty_wishlist'])->name('wishlist.items.clear');
     Route::post('/wishlist/move-to-cart/{rowId}',[WishlistController::class,'move_to_cart'])->name('wishlist.move.to.cart');
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // Checkout Route
+    // Checkout Routes
     Route::get('/checkout',[CartController::class,'checkout'])->name('cart.checkout');
     Route::post('/place-an-order', [CartController :: class,'place_an_order'])->name('cart.place.an.order');
     Route::get('/order-confirmation',[CartController::class,'order_confirmation'])->name('cart.order.confirmation');
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Contact Routes
+    Route::get('/contact-us',[HomeController::class,'contact'])->name('home.contact');
+    Route::post('/contact/store', [HomeController::class,'contact_store'])->name('home.contact.store');
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Auth Routes
@@ -101,6 +105,9 @@ Route::middleware(['auth', AuthAdmin::class])->group(function (){
     Route::get('/admin/slide/{id}/edit',[AdminController :: class,'slide_edit'])->name('admin.slide.edit');
     Route::put('/admin/slide/update',[AdminController :: class,'slide_update'])->name('admin.slide.update');
     Route :: delete('/admin/slide/{id}/delete',[AdminController :: class,'slide_delete'])->name('admin.slide.delete');
+    // Contact Routes
+    Route::get('/admin/contact',[AdminController::class,'contacts'])->name('admin.contacts');
+    Route :: delete('/admin/contact/{id}/delete',[AdminController :: class,'contact_delete'])->name('admin.contact.delete');
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 });
