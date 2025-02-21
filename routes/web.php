@@ -47,6 +47,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home.index');
     Route::get('/contact-us',[HomeController::class,'contact'])->name('home.contact');
     Route::post('/contact/store', [HomeController::class,'contact_store'])->name('home.contact.store');
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Search Route
+    Route::get('/search',[HomeController :: class,'search'])->name('home.search');
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Auth Routes
 Route::middleware(['auth'])->group(function (){

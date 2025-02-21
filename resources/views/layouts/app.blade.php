@@ -328,7 +328,7 @@
                             <a href="about.html" class="navigation__link">About</a>
                         </li>
                         <li class="navigation__item">
-                            <a href="{{route('home.contact')}}" class="navigation__link">Contact</a>
+                            <a href="{{ route('home.contact') }}" class="navigation__link">Contact</a>
                         </li>
                     </ul>
                 </div>
@@ -418,7 +418,7 @@
                             <a href="about.html" class="navigation__link">About</a>
                         </li>
                         <li class="navigation__item">
-                            <a href="{{route('home.contact')}}" class="navigation__link">Contact</a>
+                            <a href="{{ route('home.contact') }}" class="navigation__link">Contact</a>
                         </li>
                     </ul>
                 </nav>
@@ -440,7 +440,8 @@
                                 <p class="text-uppercase text-secondary fw-medium mb-4">What are you looking for?</p>
                                 <div class="position-relative">
                                     <input class="search-field__input search-popup__input w-100 fw-medium"
-                                        type="text" name="search-keyword" placeholder="Search products" />
+                                        type="text" name="search-keyword" id="search-input"
+                                        placeholder="Search products" />
                                     <button class="btn-icon search-popup__submit" type="submit">
                                         <svg class="d-block" width="20" height="20" viewBox="0 0 20 20"
                                             fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -451,25 +452,7 @@
                                 </div>
 
                                 <div class="search-popup__results">
-                                    <div class="sub-menu search-suggestion">
-                                        <h6 class="sub-menu__title fs-base">Quicklinks</h6>
-                                        <ul class="sub-menu__list list-unstyled">
-                                            <li class="sub-menu__item"><a href="shop2.html"
-                                                    class="menu-link menu-link_us-s">New Arrivals</a>
-                                            </li>
-                                            <li class="sub-menu__item"><a href="#"
-                                                    class="menu-link menu-link_us-s">Dresses</a></li>
-                                            <li class="sub-menu__item"><a href="shop3.html"
-                                                    class="menu-link menu-link_us-s">Accessories</a>
-                                            </li>
-                                            <li class="sub-menu__item"><a href="#"
-                                                    class="menu-link menu-link_us-s">Footwear</a></li>
-                                            <li class="sub-menu__item"><a href="#"
-                                                    class="menu-link menu-link_us-s">Sweatshirt</a></li>
-                                        </ul>
-                                    </div>
-
-                                    <div class="search-result row row-cols-5"></div>
+                                    <ul id="box-content-search"> </ul>
                                 </div>
                             </form>
                         </div>
@@ -499,7 +482,7 @@
                     @php
                         use Surfsidemedia\Shoppingcart\Facades\Cart;
                     @endphp
-                    <a href="{{route('wishlist.index')}}" class="header-tools__item header-tools__cart">
+                    <a href="{{ route('wishlist.index') }}" class="header-tools__item header-tools__cart">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
                             xmlns="http://www.w3.org/2000/svg">
                             <use href="#icon_heart" />
@@ -598,7 +581,8 @@
                         </li>
                         <li class="sub-menu__item"><a href="blog_list1.html"
                                 class="menu-link menu-link_us-s">Blog</a></li>
-                        <li class="sub-menu__item"><a href="{{route('home.contact')}}" class="menu-link menu-link_us-s">Contact
+                        <li class="sub-menu__item"><a href="{{ route('home.contact') }}"
+                                class="menu-link menu-link_us-s">Contact
                                 Us</a></li>
                     </ul>
                 </div>
@@ -712,6 +696,68 @@
     <script src="{{ asset('js/sweetalert.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/swiper.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/countdown.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#search-input").on("keyup", function() {
+                var searchQuery = $(this).val().trim();
+
+                if (searchQuery.length > 2) {
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ route('home.search') }}", // Ensure this resolves correctly
+                        data: {
+                            'search-keyword': searchQuery
+                        }, // Match the correct query parameter
+                        dataType: 'json',
+                        success: function(response) {
+                            $("#box-content-search").html(""); // Clear previous results
+
+                            if (response.length === 0) {
+                                $("#box-content-search").html("<li>No products found</li>");
+                                return;
+                            }
+
+                            $.each(response, function(index, item) {
+                                var productUrl =
+                                    `{{ route('shop.product.details', ['product_slug' => '__slug__']) }}`
+                                    .replace('__slug__', item.slug);
+                                var imagePath =
+                                    `{{ asset('uploads/products/thumbnails') }}/${item.image}`;
+
+                                $("#box-content-search").append(`
+                                <li>
+                                    <ul>
+                                        <li class="product-item gap14 mb-10">
+                                            <div class="image no-bg">
+                                                <img src="${imagePath}" alt="${item.name}">
+                                            </div>
+                                            <div class="flex items-center justify-between gap20 flex-grow">
+                                                <div class="name">
+                                                    <a href="${productUrl}" class="body-text">${item.name}</a>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="mb-10">
+                                            <div class="divider"></div>
+                                        </li>
+                                    </ul>
+                                </li>
+                            `);
+                            });
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("AJAX Error: ", xhr.responseText);
+                        }
+                    });
+                } else {
+                    $("#box-content-search").html(""); // Clear results if query is too short
+                }
+            });
+        });
+    </script>
+
+
     <script src="{{ asset('assets/js/theme.js') }}"></script>
     @stack('scripts')
 </body>
