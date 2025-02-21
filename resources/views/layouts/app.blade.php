@@ -698,65 +698,47 @@
     <script src="{{ asset('assets/js/plugins/countdown.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(function() {
             $("#search-input").on("keyup", function() {
-                var searchQuery = $(this).val().trim();
-
-                if (searchQuery.length > 2) {
+                var searchQuery = $(this).val();
+                if(searchQuery.length > 2) {
                     $.ajax({
                         type: "GET",
-                        url: "{{ route('home.search') }}", // Ensure this resolves correctly
-                        data: {
-                            'search-keyword': searchQuery
-                        }, // Match the correct query parameter
+                        url: "{{ route('home.search') }}",
+                        data: { query: searchQuery },
                         dataType: 'json',
-                        success: function(response) {
-                            $("#box-content-search").html(""); // Clear previous results
+                        success: function(data) {
+                            $("#box-content-search").html('');
+                            $.each(data, function(index, item) {
+                                var url = "{{ route('shop.product.details', ['product_slug' => 'product_slg_pls']) }}";
+                                var link = url.replace('product_slg_pls', item.slug);
 
-                            if (response.length === 0) {
-                                $("#box-content-search").html("<li>No products found</li>");
-                                return;
-                            }
-
-                            $.each(response, function(index, item) {
-                                var productUrl =
-                                    `{{ route('shop.product.details', ['product_slug' => '__slug__']) }}`
-                                    .replace('__slug__', item.slug);
-                                var imagePath =
-                                    `{{ asset('uploads/products/thumbnails') }}/${item.image}`;
-
-                                $("#box-content-search").append(`
-                                <li>
-                                    <ul>
-                                        <li class="product-item gap14 mb-10">
-                                            <div class="image no-bg">
-                                                <img src="${imagePath}" alt="${item.name}">
-                                            </div>
-                                            <div class="flex items-center justify-between gap20 flex-grow">
-                                                <div class="name">
-                                                    <a href="${productUrl}" class="body-text">${item.name}</a>
+                                $("#box-content-search").append(
+                                    `<li>
+                                        <ul>
+                                            <li class="product-item gap14 mb-10">
+                                                <div class="image no-bg">
+                                                    <img src="{{ asset('uploads/products/thumbnails') }}/${item.image}" alt="${item.name}">
                                                 </div>
-                                            </div>
-                                        </li>
-                                        <li class="mb-10">
-                                            <div class="divider"></div>
-                                        </li>
-                                    </ul>
-                                </li>
-                            `);
+                                                <div class="flex items-center justify-between gap20 flex-grow">
+                                                    <div class="name">
+                                                        <a href="${link}" class="body-text">${item.name}</a>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="mb-10">
+                                                <div class="divider"></div>
+                                            </li>
+                                        </ul>
+                                    </li>`
+                                );
                             });
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("AJAX Error: ", xhr.responseText);
                         }
                     });
-                } else {
-                    $("#box-content-search").html(""); // Clear results if query is too short
                 }
             });
         });
     </script>
-
 
     <script src="{{ asset('assets/js/theme.js') }}"></script>
     @stack('scripts')
