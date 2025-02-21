@@ -521,9 +521,9 @@
                                 class="logo__image d-block" />
                         </a>
                     </div>
-                    <p class="footer-address">123 Beach Avenue, Surfside City, CA 00000</p>
+                    <p class="footer-address">123 Cairo, Egypt</p>
                     <p class="m-0"><strong class="fw-medium">contact@surfsidemedia.in</strong></p>
-                    <p><strong class="fw-medium">+1 000-000-0000</strong></p>
+                    <p><strong class="fw-medium">011-000-0000</strong></p>
 
                     <ul class="social-links list-unstyled d-flex flex-wrap mb-0">
                         <li>
@@ -696,7 +696,6 @@
     <script src="{{ asset('js/sweetalert.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/swiper.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/countdown.js') }}"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(function() {
             $("#search-input").on("keyup", function() {
