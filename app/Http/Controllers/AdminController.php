@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\Slide;
 use App\Services\BrandService;
 use App\Services\CategoryService;
+use App\Services\CouponService;
 use App\Services\ProductService;
 use Carbon\Carbon;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
@@ -28,16 +29,18 @@ class AdminController extends Controller
     protected $brandService;
     protected $categoryService;
     protected $productService;
-
+    protected $couponService;
     public function __construct(
         BrandService $brandService,
         CategoryService $categoryService,
         ProductService $productService,
+        CouponService $couponService,
         )
     {
         $this->brandService = $brandService;
         $this->categoryService = $categoryService;
         $this->productService = $productService;
+        $this->couponService = $couponService;
     }
 
     public function index()
@@ -188,61 +191,40 @@ class AdminController extends Controller
         $this->productService->deleteProduct($id);
         return redirect()->route("admin.products")->with('status', 'Product has been deleted successfully');
     }
-    
+
     public function coupons()
     {
-        $coupons = Coupon::orderBy('expiry_date', 'DESC')->paginate(12);
+        $coupons = $this->couponService->getAllCoupons();
         return view('admin.coupons.coupons-home', compact('coupons'));
     }
+
     public function coupon_add()
     {
         return view('admin.coupons.coupon-add');
     }
+
     public function coupon_store(Request $request)
     {
-        $request->validate([
-            'code' => 'required',
-            'type' => 'required',
-            'value' => 'required|numeric',
-            'cart_value' => 'required|numeric',
-            'expiry_date' => 'required|date',
-        ]);
-        $coupon = new Coupon;
-        $coupon->code = $request->code;
-        $coupon->value = $request->value;
-        $coupon->cart_value = $request->cart_value;
-        $coupon->expiry_date = $request->expiry_date;
-        $coupon->save();
+        $this->couponService->storeCoupon($request);
         return redirect()->route('admin.coupons')->with('status', 'Coupon has been added successfully!');
     }
+
     public function coupon_edit($id)
     {
-        $coupon = Coupon::find($id);
+        $coupon = $this->couponService->getCouponById($id);
         return view('admin.coupons.coupon-edit', compact('coupon'));
     }
+
     public function coupon_update(Request $request)
     {
-        $request->validate([
-            'code' => 'required',
-            'type' => 'required',
-            'value' => 'required|numeric',
-            'cart_value' => 'required|numeric',
-            'expiry_date' => 'required|date',
-        ]);
-        $coupon = Coupon::find($request->id);
-        $coupon->code = $request->code;
-        $coupon->value = $request->value;
-        $coupon->cart_value = $request->cart_value;
-        $coupon->expiry_date = $request->expiry_date;
-        $coupon->save();
+        $this->couponService->updateCoupon($request);
         return redirect()->route('admin.coupons')->with('status', 'Coupon has been updated successfully!');
     }
+
     public function coupon_delete($id)
     {
-        $coupon = Coupon::find($id);
-        $coupon->delete();
-
-        return redirect()->route('admin.coupons')->with('status', 'Coupon has been Deleted successfully!');
+        $this->couponService->deleteCoupon($id);
+        return redirect()->route('admin.coupons')->with('status', 'Coupon has been deleted successfully!');
     }
     public function orders()
     {
