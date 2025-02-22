@@ -8,6 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class OrderItem extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'id',
+        'order_id',
+        'product_id', // Allow mass assignment for 'product_id'
+        'quantity',
+        'price',
+        // Add any other necessary columns
+    ];
     public function product()
     {
         return $this->belongsTo(Product::class);
