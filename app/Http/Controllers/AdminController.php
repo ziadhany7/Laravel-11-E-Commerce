@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\Slide;
 use App\Services\BrandService;
 use App\Services\CategoryService;
+use App\Services\ContactService;
 use App\Services\CouponService;
 use App\Services\OrderService;
 use App\Services\ProductService;
@@ -34,6 +35,7 @@ class AdminController extends Controller
     protected $couponService;
     protected $orderService;
     protected $slideService;
+    protected $contactService;
     public function __construct(
         BrandService $brandService,
         CategoryService $categoryService,
@@ -41,6 +43,7 @@ class AdminController extends Controller
         CouponService $couponService,
         OrderService $orderService,
         SlideService $slideService,
+        ContactService $contactService,
         )
     {
         $this->brandService = $brandService;
@@ -49,6 +52,7 @@ class AdminController extends Controller
         $this->couponService = $couponService;
         $this->orderService = $orderService;
         $this->slideService = $slideService;
+        $this->contactService = $contactService;
     }
 
     //---------------------- Index --------------------------
@@ -284,18 +288,19 @@ class AdminController extends Controller
         return redirect()->route('admin.slides')->with("error", "Slide not found!");
     }
 
-    //---------------------------------- Contacts Functions ----------------------------------
-    public function contacts()
-    {
-        $contacts = Contact::orderBy('created_at', 'DESC')->paginate(10);
-        return view('admin.contact.contact-home', compact('contacts'));
-    }
-    public function contact_delete($id)
-    {
-        $contact = Contact::find($id);
-        $contact->delete();
-        return redirect()->route('admin.contacts')->with("status", "Contact deleted successfully!");
-    }
+  //---------------------------------- Contacts Functions ----------------------------------
+
+  public function contacts()
+  {
+      $contacts = $this->contactService->getAllContacts();
+      return view('admin.contact.contact-home', compact('contacts'));
+  }
+
+  public function contact_delete($id)
+  {
+      $this->contactService->deleteContact($id);
+      return redirect()->route('admin.contacts')->with("status", "Contact deleted successfully!");
+  }
 
     //--------------------------- Search Functions -----------------------------
     public function search(Request $request)
