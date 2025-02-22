@@ -14,6 +14,7 @@ use App\Models\Slide;
 use App\Services\BrandService;
 use App\Services\CategoryService;
 use App\Services\CouponService;
+use App\Services\OrderService;
 use App\Services\ProductService;
 use Carbon\Carbon;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
@@ -30,17 +31,20 @@ class AdminController extends Controller
     protected $categoryService;
     protected $productService;
     protected $couponService;
+    protected $orderService;
     public function __construct(
         BrandService $brandService,
         CategoryService $categoryService,
         ProductService $productService,
         CouponService $couponService,
+        OrderService $orderService,
         )
     {
         $this->brandService = $brandService;
         $this->categoryService = $categoryService;
         $this->productService = $productService;
         $this->couponService = $couponService;
+        $this->orderService = $orderService;
     }
 
     public function index()
@@ -228,34 +232,20 @@ class AdminController extends Controller
     }
     public function orders()
     {
-        $orders = Order::orderBy('created_at', 'DESC')->paginate(12);
-
+        $orders = $this->orderService->getAllOrders();
         return view('admin.orders.orders-home', compact('orders'));
     }
+
     public function order_detailsk($order_id)
     {
-        $order = Order::find($order_id);
-        $orderItems = OrderItem::where('order_id', $order_id)->orderBy('id')->paginate(12);
-        $transaction = Transaction::where('order_id', $order_id)->first();
-        return view('admin.orders.order-details', compact('order', 'orderItems', 'transaction'));
+        $data = $this->orderService->getOrderDetails($order_id);
+        return view('admin.orders.order-details', $data);
     }
+
     public function update_order_status(Request $request)
     {
-        $order = Order::find($request->order_id);
-        $order->status = $request->order_status;
-        if ($request->order_status == 'delivered') {
-            $order->delivered_date = Carbon::now();
-        } else if ($request->order_status == 'canceled') {
-            $order->canceled_date = Carbon::now();
-        }
-        $order->save();
-
-        if ($request->order_status == "delivered") {
-            $transaction = Transaction::where('order_id', $request->order_id)->first();
-            $transaction->status = 'approved';
-            $transaction->save();
-        }
-        return back()->with("status", "Status changed successfully!");
+        $status = $this->orderService->updateOrderStatus($request->order_id, $request->order_status);
+        return back()->with("status", $status);
     }
     public function slides()
     {
