@@ -6,42 +6,38 @@ use App\Models\Category;
 use App\Models\Contact;
 use App\Models\Product;
 use App\Models\Slide;
+use App\Services\HomeService;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
+    protected $homeService;
+
+    public function __construct(HomeService $homeService)
+    {
+        $this->homeService = $homeService;
+    }
+
     public function index()
     {
-        $slides = Slide::where('status', 1)->get()->take(3);
-        $categories = Category::orderBy('name')->get();
-        $sproducts = Product::whereNotNull('sale_price')->where('sale_price', '<>', '')->inRandomOrder()->get()->take(8);
-        $fproducts = Product::where('featured', 1)->get()->take(8);
-        return view('index', compact('slides', 'categories', 'sproducts', 'fproducts'));
+        $data = $this->homeService->getHomeData();
+        return view('index', $data);
     }
+
     public function contact()
     {
         return view('contact.contact-home');
     }
+
     public function contact_store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|max:100',
-            'email' => 'required|email',
-            'phone' => 'required|numeric|digits:10',
-            'comment' => 'required'
-        ]);
-        $contact = new Contact();
-        $contact->name = $request->name;
-        $contact->email = $request->email;
-        $contact->phone = $request->phone;
-        $contact->comment = $request->comment;
-        $contact->save();
-        return redirect()->back()->with('success', 'Your message has been sent successfully');
+        return $this->homeService->storeContact($request);
     }
+
     public function search(Request $request)
     {
         $query = $request->input('query');
-        $results = Product::where('name', 'LIKE', "%{$query}%")->get()->take(8);
+        $results = $this->homeService->searchProducts($query);
         return response()->json($results);
     }
 }
