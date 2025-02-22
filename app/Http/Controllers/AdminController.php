@@ -16,6 +16,7 @@ use App\Services\CategoryService;
 use App\Services\CouponService;
 use App\Services\OrderService;
 use App\Services\ProductService;
+use App\Services\SlideService;
 use Carbon\Carbon;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Http\Request;
@@ -32,12 +33,14 @@ class AdminController extends Controller
     protected $productService;
     protected $couponService;
     protected $orderService;
+    protected $slideService;
     public function __construct(
         BrandService $brandService,
         CategoryService $categoryService,
         ProductService $productService,
         CouponService $couponService,
         OrderService $orderService,
+        SlideService $slideService,
         )
     {
         $this->brandService = $brandService;
@@ -45,8 +48,10 @@ class AdminController extends Controller
         $this->productService = $productService;
         $this->couponService = $couponService;
         $this->orderService = $orderService;
+        $this->slideService = $slideService;
     }
 
+    //---------------------- Index --------------------------
     public function index()
     {
         $orders = Order::orderBy('created_at', 'DESC')->get()->take(5);
@@ -89,6 +94,8 @@ class AdminController extends Controller
 
         //Purpose of index Method : Shows the main admin page.
     }
+
+    //--------------------- Brands Functions -----------------
     public function brands()
     {
         $brands = $this->brandService->getAllBrands();
@@ -103,13 +110,11 @@ class AdminController extends Controller
         $this->brandService->storeBrand($request);
         return redirect()->route('admin.brands')->with('status', 'Brand added successfully!');
     }
-
     public function brands_edit($brand_id)
     {
         $brand = $this->brandService->getBrandById($brand_id);
         return view("admin.brands.brands-edit", compact('brand'));
     }
-
     public function brands_update(Request $request)
     {
         $this->brandService->updateBrand($request);
@@ -125,219 +130,161 @@ class AdminController extends Controller
         return redirect()->route('admin.brands')->with('status', 'Brand has been Deleted successfully!');
     }
 
+    //------------------- Categories Functions -----------------------
     public function categories()
     {
         $categories = $this->categoryService->getAllCategories();
         return view("admin.categories.categories-home", compact('categories'));
     }
-
     public function category_add()
     {
         return view("admin.categories.category-add");
     }
-
     public function category_store(Request $request)
     {
         $this->categoryService->storeCategory($request);
         return redirect()->route('admin.categories')->with('status', 'Category added successfully');
     }
-
     public function category_edit($id)
     {
         $category = $this->categoryService->getCategoryById($id);
         return view("admin.categories.category-edit", compact('category'));
     }
-
     public function category_update(Request $request)
     {
         $this->categoryService->updateCategory($request, $request->id);
         return redirect()->route('admin.categories')->with('status', 'Category updated successfully');
     }
-
     public function category_delete($category_id)
     {
         $this->categoryService->deleteCategory($category_id);
         return redirect()->route('admin.categories')->with('status', 'Category deleted successfully');
     }
+
+    //-------------------- Products Functions -------------------------
     public function products()
     {
         $products = $this->productService->getAllProducts();
         return view("admin.products.products-home", compact('products'));
     }
-
     public function product_add()
     {
         $data = $this->productService->getCategoriesAndBrands();
         return view('admin.products.products-add', $data);
     }
-
     public function product_store(Request $request)
     {
         $this->productService->storeProduct($request);
         return redirect()->route('admin.products')->with('status', 'Product has been added successfully');
     }
-
     public function product_edit($id)
     {
         $product = $this->productService->getProductById($id);
         $data = $this->productService->getCategoriesAndBrands();
         return view("admin.products.product-edit", compact('product') + $data);
     }
-
     public function product_update(Request $request)
     {
         $this->productService->updateProduct($request, $request->id);
         return redirect()->route('admin.products')->with('status', 'Product has been updated successfully');
     }
-
     public function product_delete($id)
     {
         $this->productService->deleteProduct($id);
         return redirect()->route("admin.products")->with('status', 'Product has been deleted successfully');
     }
 
+    //---------------------------- Coupons Functions --------------------
     public function coupons()
     {
         $coupons = $this->couponService->getAllCoupons();
         return view('admin.coupons.coupons-home', compact('coupons'));
     }
-
     public function coupon_add()
     {
         return view('admin.coupons.coupon-add');
     }
-
     public function coupon_store(Request $request)
     {
         $this->couponService->storeCoupon($request);
         return redirect()->route('admin.coupons')->with('status', 'Coupon has been added successfully!');
     }
-
     public function coupon_edit($id)
     {
         $coupon = $this->couponService->getCouponById($id);
         return view('admin.coupons.coupon-edit', compact('coupon'));
     }
-
     public function coupon_update(Request $request)
     {
         $this->couponService->updateCoupon($request);
         return redirect()->route('admin.coupons')->with('status', 'Coupon has been updated successfully!');
     }
-
     public function coupon_delete($id)
     {
         $this->couponService->deleteCoupon($id);
         return redirect()->route('admin.coupons')->with('status', 'Coupon has been deleted successfully!');
     }
+
+    //------------------------------ Orders Functions ------------------------
     public function orders()
     {
         $orders = $this->orderService->getAllOrders();
         return view('admin.orders.orders-home', compact('orders'));
     }
-
     public function order_detailsk($order_id)
     {
         $data = $this->orderService->getOrderDetails($order_id);
         return view('admin.orders.order-details', $data);
     }
-
     public function update_order_status(Request $request)
     {
         $status = $this->orderService->updateOrderStatus($request->order_id, $request->order_status);
         return back()->with("status", $status);
     }
+
+    //-------------------------------------- Slides Functions -----------------------------------
     public function slides()
     {
-        $slides = Slide::orderBy('id', 'DESC')->paginate(12);
+        $slides = $this->slideService->getAllSlides();
         return view('admin.slides.slides-home', compact('slides'));
     }
+
     public function slide_add()
     {
         return view('admin.slides.slide-add');
     }
+
     public function slide_store(Request $request)
     {
-        $request->validate([
-            'tagline' => 'required',
-            'title' => 'required',
-            'subtitle' => 'required',
-            'link' => 'required',
-            'status' => 'required',
-            'image' => 'required|mimes:png,jpg,jpeg|max:2048'
-        ]);
-
-        $slide = new Slide();
-        $slide->tagline = $request->tagline;
-        $slide->title = $request->title;
-        $slide->subtitle = $request->subtitle;
-        $slide->link = $request->link;
-        $slide->status = $request->status;
-        $image = $request->file('image');
-
-        $file_extention = $request->file('image')->extension();
-        $file_name = Carbon::now()->timestamp . '.' . $file_extention;
-        $this->GenerateslideThumbailsImage($image, $file_name);
-        $slide->image = $file_name;
-        $slide->save();
-        return redirect()->route('admin.slides')->with("status", "slide added successfully!");
-    }
-    public function GenerateslideThumbailsImage($image, $imageName)
-    {
-        $destinationPath = public_path('uploads/slides');
-        $img = Image::read($image->path());
-        $img->cover(400, 690, "top");
-        $img->resize(400, 690, function ($constraint) {
-            $constraint->aspectRatio();
-        })->save($destinationPath . '/' . $imageName);
+        $this->slideService->storeSlide($request);
+        return redirect()->route('admin.slides')->with("status", "Slide added successfully!");
     }
 
     public function slide_edit($id)
     {
-        $slide = Slide::find($id);
+        $slide = $this->slideService->getSlideById($id);
         return view('admin.slides.slide-edit', compact('slide'));
     }
+
     public function slide_update(Request $request)
     {
-        $request->validate([
-            'tagline' => 'required',
-            'title' => 'required',
-            'subtitle' => 'required',
-            'link' => 'required',
-            'status' => 'required',
-            'image' => 'mimes:png,jpg,jpeg|max:2048'
-        ]);
-
-        $slide = Slide::find($request->id);
-        $slide->tagline = $request->tagline;
-        $slide->title = $request->title;
-        $slide->subtitle = $request->subtitle;
-        $slide->link = $request->link;
-        $slide->status = $request->status;
-
-        if ($request->hasFile('image')) {
-            if (File::exists(public_path('uploads/slides') . '/' . $slide->image)) {
-                File::delete(public_path('uploads/slides') . '/' . $slide->image);
-            }
-            $image = $request->file('image');
-            $file_extention = $request->file('image')->extension();
-            $file_name = Carbon::now()->timestamp . '.' . $file_extention;
-            $this->GenerateslideThumbailsImage($image, $file_name);
-            $slide->image = $file_name;
+        $updated = $this->slideService->updateSlide($request);
+        if ($updated) {
+            return redirect()->route('admin.slides')->with("status", "Slide updated successfully!");
         }
-        $slide->save();
-        return redirect()->route('admin.slides')->with("status", "slide updated successfully!");
+        return redirect()->route('admin.slides')->with("error", "Slide not found!");
     }
 
     public function slide_delete($id)
     {
-        $slide = Slide::find($id);
-        if (File::exists(public_path('uploads/slides') . '/' . $slide->image)) {
-            File::delete(public_path('uploads/slides') . '/' . $slide->image);
+        $deleted = $this->slideService->deleteSlide($id);
+        if ($deleted) {
+            return redirect()->route('admin.slides')->with("status", "Slide deleted successfully!");
         }
-        $slide->delete();
-        return redirect()->route('admin.slides')->with("status", "slide deleted successfully!");
+        return redirect()->route('admin.slides')->with("error", "Slide not found!");
     }
+
+    //---------------------------------- Contacts Functions ----------------------------------
     public function contacts()
     {
         $contacts = Contact::orderBy('created_at', 'DESC')->paginate(10);
@@ -349,6 +296,8 @@ class AdminController extends Controller
         $contact->delete();
         return redirect()->route('admin.contacts')->with("status", "Contact deleted successfully!");
     }
+
+    //--------------------------- Search Functions -----------------------------
     public function search(Request $request)
     {
         $query = $request->input('query');
