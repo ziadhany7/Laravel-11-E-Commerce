@@ -12,6 +12,7 @@ use App\Models\Transaction;
 use App\Models\Product;
 use App\Models\Slide;
 use App\Services\BrandService;
+use App\Services\CategoryService;
 use Carbon\Carbon;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Http\Request;
@@ -24,10 +25,15 @@ use function PHPUnit\Framework\returnValueMap;
 class AdminController extends Controller
 {
     protected $brandService;
+    protected $categoryService;
 
-    public function __construct(BrandService $brandService)
+    public function __construct(
+        BrandService $brandService,
+        CategoryService $categoryService,
+        )
     {
         $this->brandService = $brandService;
+        $this->categoryService = $categoryService;
     }
 
     public function index()
@@ -110,87 +116,37 @@ class AdminController extends Controller
 
     public function categories()
     {
-        $categories = Category::orderBy("id", "desc")->paginate(10);
+        $categories = $this->categoryService->getAllCategories();
         return view("admin.categories.categories-home", compact('categories'));
     }
+
     public function category_add()
     {
         return view("admin.categories.category-add");
     }
+
     public function category_store(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'slug' => 'required|unique:categories,slug',
-            'image' => 'mimes:png,jpg,jpeg|max:2048'
-        ]);
-        # Creation
-        $category = new Category();
-        $category->name = $request->name;
-        $category->slug = $request->slug;
-
-        $image = $request->file('image');
-        $image_extention = $image->extension();
-        $image_name = Carbon::now()->timestamp . '.' . $image_extention;
-        $this->GenerateCategoryThumbailsImage($image, $image_name);
-        $category->image = $image_name;
-        $category->save();
+        $this->categoryService->storeCategory($request);
         return redirect()->route('admin.categories')->with('status', 'Category added successfully');
     }
 
-    public function GenerateCategoryThumbailsImage($image, $imageName)
-    {
-        $destinationPath = public_path('uploads/categories');
-        $img = Image::read($image->path());
-        $img->cover(124, 124, 'top');
-        $img->resize(124, 124, function ($constraint) {
-            $constraint->aspecRatio();
-        })->save($destinationPath . '/' . $imageName);
-    }
     public function category_edit($id)
     {
-        $category = Category::find($id);
+        $category = $this->categoryService->getCategoryById($id);
         return view("admin.categories.category-edit", compact('category'));
     }
+
     public function category_update(Request $request)
     {
-        $request->validate([                                           //   Validates the form data to ensure correctness before proceeding.
-            'name' => 'required',                                     //   Ensures the name field is present and not empty.
-            'slug' => 'required|unique:categories,slug,' . $request->id,   //  The slug field must not be empty. & The slug must be unique in the categories table (except for the current category being updated, identified by $request->id).
-            'image' => 'mimes:png,jpg,jpeg|max:2048',               //   Ensures the uploaded file is an image with the specified extensions (png, jpg, jpeg).  &   Restricts the file size to a maximum of 2MB (2048 KB).
-        ]);
-
-        $category = Category::find($request->id);
-
-        // Assigns the name and slug fields from the request to the corresponding model properties.
-        $category->slug = $request->slug;
-        $category->name = $request->name;
-
-        if ($request->hasFile('image')) { // Confirms whether the image file exists in the request.
-            if (File::exists(public_path('uploads/categories') . '/' . $category->image))   // File::exists(...): Checks if the old image exists in the specified directory.
-            {
-                File::delete(public_path('uploads/categories') . '/' . $category->image);   // File::delete(...): Deletes the old image to avoid unused files taking up space.
-            }
-            $image = $request->file('image');           // Retrieves the uploaded file (image).
-            $file_extention = $image->extension();     // Retrieves the file extension of the uploaded image (e.g., png, jpg).
-            $file_name = Carbon::now()->timestamp . '.' . $file_extention;  // Generates a unique timestamp for the file name to avoid name conflicts.  &  {Carbon::now()->timestamp . '.' . $file_extention} Combines the timestamp and file extension to create a unique file name.
-            $this->GenerateCategoryThumbailsImage($image, $file_name); // Calls a helper method to generate thumbnail images. (Assumes this method resizes and saves the uploaded image).
-            $category->image = $file_name;  // Stores the generated file name in the image column of the category model.
-        }
-        $category->save();   // Persists the updated brand object into the database.
-        return redirect()->route('admin.categories')->with('status', 'Category Updated successfully!!!');
-        // redirect()->route('admin.categories'): Redirects the user to the route named admin.categories (assumed to display the categories list).
-        // with('status', 'Category Updated successfully!!!'):
-        // Passes a flash message (status) with the value 'Category Updated successfully!!!'.  {This message is often displayed to the user as feedback (e.g., in a success alert).}
+        $this->categoryService->updateCategory($request, $request->id);
+        return redirect()->route('admin.categories')->with('status', 'Category updated successfully');
     }
+
     public function category_delete($category_id)
     {
-        $category = Category::find($category_id);
-        if (File::exists(public_path('uploads/categories') . '/' . $category->name)) {
-            File::delete(public_path('uploads/categories') . '/' . $category->name);
-        }
-        $category->delete();
-        return redirect()->route('admin.categories')->with('status', 'Category Deleted successfully');
+        $this->categoryService->deleteCategory($category_id);
+        return redirect()->route('admin.categories')->with('status', 'Category deleted successfully');
     }
 
     public function products()
