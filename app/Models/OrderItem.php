@@ -14,7 +14,6 @@ class OrderItem extends Model
         'product_id', // Allow mass assignment for 'product_id'
         'quantity',
         'price',
-        // Add any other necessary columns
     ];
     public function product()
     {

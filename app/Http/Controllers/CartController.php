@@ -13,14 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session as FacadesSession;
-use App\Services\CartService;
+
 class CartController extends Controller
 {
-    protected $cartService;
-    public function __construct(CartService $cartService)
-    {
-        $this->cartService = $cartService;
-    }
     public function index()
     {
         $items = Cart::instance('cart')->content();
@@ -28,53 +23,88 @@ class CartController extends Controller
     }
     public function add_to_cart(Request $request)
     {
-        $this->cartService->addToCart($request->id, $request->name, $request->quantity, $request->price);
+        Cart::instance('cart')->add($request->id, $request->name, $request->quantity, $request->price)->associate('App\Models\Product');
         return redirect()->back();
     }
-
     public function increase_cart_quantity($rowId)
     {
-        $this->cartService->increaseCartQuantity($rowId);
+        $product = Cart::instance('cart')->get($rowId);
+        $qty = $product->qty + 1;
+        Cart::instance('cart')->update($rowId, $qty);
         return redirect()->back();
     }
-
     public function decrease_cart_quantity($rowId)
     {
-        $this->cartService->decreaseCartQuantity($rowId);
+        $product = Cart::instance('cart')->get($rowId);
+        $qty = $product->qty - 1;
+        Cart::instance('cart')->update($rowId, $qty);
         return redirect()->back();
     }
-
     public function remove_item($rowId)
     {
-        $this->cartService->removeItem($rowId);
+        Cart::instance('cart')->remove($rowId);
         return redirect()->back();
     }
-
     public function empty_cart()
     {
-        $this->cartService->emptyCart();
+        Cart::instance('cart')->destroy();
         return redirect()->back();
     }
-
     public function apply_coupon_code(Request $request)
     {
-        $result = $this->cartService->applyCouponCode($request->coupon_code);
+        $coupon_code = $request->coupon_code;
+        if (isset($coupon_code)) {
+            $coupon = Coupon::where('code', $coupon_code)->where('expiry_date', '>=', Carbon::today())->where('cart_value', '<=', Cart::instance('cart')->subtotal())->first();
+            if (!$coupon) {
+                return redirect()->back()->with('error', 'Invalid coupon code');
+            } else {
+                Session::put('coupon', [
+                    'code' => $coupon->code,
+                    'type' => $coupon->type,
+                    'value' => $coupon->value,
+                    'cart_value' => $coupon->cart_value,
 
-        return redirect()->back()->with($result['status'], $result['message']);
+                ]);
+                $this->calculate_discount();
+                return redirect()->back()->with('success', 'Coupon has been applied!');
+            }
+        } else {
+            return redirect()->back()->with('error', 'Invalid coupon code');
+        }
     }
+    public function calculate_discount()
+    {
+        $discount = 0;
+        if (Session::has('coupon')) {
+            if (Session::get('type' == 'fixed')) {
+                $discount = Session::get('coupon')['value'];
+            } else {
+                $discount = (Cart::instance('cart')->subtotal() * Session::get('coupon')['value']) / 100;
+            }
+            $subtotalAfterDiscount = Cart::instance('cart')->subtotal() - $discount;
+            $taxAfterDiscount = ($subtotalAfterDiscount * config('cart.tax')) / 100;
+            $totalAfterDiscount = $subtotalAfterDiscount + $taxAfterDiscount;
 
+            Session::put('discounts', [
+                'discount' => number_format(floatval($discount), 2, '.', ''),
+                'subtotal' => number_format(floatval($subtotalAfterDiscount), 2, '.', ''),
+                'tax' => number_format(floatval($taxAfterDiscount), 2, '.', ''),
+                'total' => number_format(floatval($totalAfterDiscount), 2, '.', ''),
+            ]);
+        }
+    }
     public function remove_coupon_code()
     {
-        $this->cartService->removeCouponCode();
+        Session::forget('coupon');
+        Session::forget('discounts');
         return back()->with('success', 'Coupon has been removed!');
     }
-
     public function checkout()
     {
         if (!Auth::check()) {
             return redirect()->route('login');
+        } else {
         }
-
         $address = Address::where('user_id', Auth::user()->id)->where('isdefault', 1)->first();
         return view('checkout.checkout-home', compact('address'));
     }
@@ -83,12 +113,11 @@ class CartController extends Controller
     {
         $user_id = Auth::user()->id;
         $address = Address::where('user_id', $user_id)->where('isdefault', true)->first();
-
         if (!$address) {
             $request->validate([
                 'name' => 'required|max:100',
                 'phone' => 'required|numeric|digits:10',
-                'zip' => 'required|numeric|digits:6',
+                'zip' => 'required| numeric|digits:6',
                 'state' => 'required',
                 'city' => 'required',
                 'address' => 'required',
@@ -96,33 +125,101 @@ class CartController extends Controller
                 'landmark' => 'required',
             ]);
 
-            $address = Address::create($request->all() + ['user_id' => $user_id, 'country' => 'Egypt', 'isdefault' => true]);
+            $address = new Address();
+            $address->name = $request->name;
+            $address->phone = $request->phone;
+            $address->zip = $request->zip;
+            $address->state = $request->state;
+            $address->city = $request->city;
+            $address->address = $request->address;
+            $address->locality = $request->locality;
+            $address->landmark = $request->landmark;
+            $address->country = 'Egypt';
+            $address->user_id = $user_id;
+            $address->isdefault = true;
+            $address->save();
         }
 
-        $this->cartService->setAmountForCheckout();
-
-        $orderData = array_merge($address->toArray(), Session::get('checkout'));
-        $orderData['user_id'] = $user_id;
-        $order = Order::make($orderData);
+        $this->setAmountforCheckout();
+        $order = new Order();
+        $order->user_id = $user_id;
+        $order->subtotal = Session::get('checkout')['subtotal'];
+        $order->discount = Session::get('checkout')['discount'];
+        $order->tax = Session::get('checkout')['tax'];
+        $order->total = Session::get('checkout')['total'];
+        $order->name = $address->name;
+        $order->phone = $address->phone;
+        $order->locality = $address->locality;
+        $order->address = $address->address;
+        $order->city = $address->city;
+        $order->state = $address->state;
+        $order->country = $address->country;
+        $order->landmark = $address->landmark;
+        $order->zip = $address->zip;
+        $order->save();
 
         foreach (Cart::instance('cart')->content() as $item) {
-            OrderItem::create(['product_id' => $item->id, 'order_id' => $order->id, 'price' => $item->price, 'quantity' => $item->qty]);
+            $orderItem = new OrderItem();
+            $orderItem->product_id = $item->id;
+            $orderItem->order_id = $order->id;
+            $orderItem->price = $item->price;
+            $orderItem->quantity = $item->qty;
+            $orderItem->save();
         }
 
-        if ($request->mode == "cod") {
-            Transaction::create(['user_id' => $user_id, 'order_id' => $order->id, 'mode' => $request->mode, 'status' => "pending"]);
+        if($request->mode == "card")
+        {
+            //
+        }
+        elseif($request->mode == "paypal")
+        {
+            //
+        }
+        elseif($request->mode == "cod")
+        {
+            $transaction = new Transaction();
+            $transaction->user_id = $user_id;
+            $transaction->order_id = $order->id;
+            $transaction->mode = $request->mode;
+            $transaction->status = "pending";
+            $transaction->save();
         }
 
-        $this->cartService->emptyCart();
-        Session::put('order_id', $order->id);
+        Cart::instance('cart')->destroy();
+        Session::forget('checkout');
+        Session::forget('coupon');
+        Session::forget('discounts');
+        Session::put('order_id',$order->id);
         return redirect()->route('cart.order.confirmation');
     }
-
+    public function setAmountforCheckout()
+    {
+        if (!Cart::instance('cart')->content()->count() > 0) {
+            Session::forget('checkout');
+            return;
+        }
+        if (Session::has('coupon')) {
+            Session::put('checkout', [
+                'discount' => Session::get('discounts')['discount'],
+                'subtotal' => Session::get('discounts')['subtotal'],
+                'tax' => Session::get('discounts')['tax'],
+                'total' => Session::get('discounts')['total'],
+            ]);
+        } else {
+            Session::put('checkout', [
+                'discount' => 0,
+                'subtotal' => Cart::instance('cart')->subtotal(),
+                'tax' => Cart::instance('cart')->tax(),
+                'total' => Cart::instance('cart')->total(),
+            ]);
+        }
+    }
     public function order_confirmation()
     {
-        if (Session::has('order_id')) {
-            $order = Order::find(Session::get('order_id'));
-            return view('checkout.order-confirmation', compact('order'));
+        if(Session :: has('order_id'))
+        {
+            $order = Order :: find(Session :: get('order_id'));
+            return view('checkout.order-confirmation',compact('order'));
         }
         return redirect()->route('cart.index');
     }
